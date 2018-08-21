@@ -1,0 +1,38 @@
+{
+  "name": "simple-blog-server",
+  "version": "1.0.0",
+  "description": "Server for simple blog.",
+  "main": "dist/index.js",
+  "dependencies": {
+    "koa": "^2.5.2",
+    "koa-logger": "^3.2.0",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "log4js": "^3.0.5",
+    "mongoose": "^5.2.9",
+    "mz": "^2.7.0",
+    "remove-markdown": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/koa": "^2.0.46",
+    "@types/koa-logger": "^3.1.0",
+    "@types/koa-router": "^7.0.31",
+    "@types/koa-static": "^4.0.0",
+    "@types/mongoose": "^5.2.6",
+    "@types/mz": "0.0.32",
+    "@types/remove-markdown": "^0.1.1",
+    "tslint": "^5.11.0",
+    "typescript": "^3.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "tsc && node dist/index.js"
+  },
+  "author": "simplelife",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:abcyzj/simple-blog-server.git"
+  }
+}
