@@ -1,8 +1,6 @@
 import {connect} from 'mongoose';
 import CONFIG from '../config';
 import logger from '../logger';
-import { Article } from './Article';
-import { Category } from './Category';
 
 connect(CONFIG.DB_ADDR, {
     useNewUrlParser: true,

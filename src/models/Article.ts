@@ -19,6 +19,7 @@ const articleSchema: Schema = new Schema({
         default: 0,
         required: true,
     },
+    role: String,
 });
 
 export interface IArticle extends Document {
@@ -26,6 +27,7 @@ export interface IArticle extends Document {
     content: string;
     date: Date;
     viewNumber: number;
+    role: string;
 }
 
 export const Article: Model<IArticle> = model<IArticle>('Article', articleSchema);

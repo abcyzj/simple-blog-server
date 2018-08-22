@@ -44,4 +44,17 @@ readerRouter.get('/article/:id', async (ctx) => {
     }
 });
 
+readerRouter.get('/aboutArticle', async (ctx) => {
+    const article = await Article.findOne({
+        $and: [
+            {role: {$exists: true}},
+            {role: 'about'},
+        ],
+    });
+
+    if (article) {
+        ctx.body = {id: article._id};
+    }
+});
+
 export default readerRouter;
