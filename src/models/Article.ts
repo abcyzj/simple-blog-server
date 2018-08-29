@@ -20,6 +20,10 @@ const articleSchema: Schema = new Schema({
         required: true,
     },
     role: String,
+    category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+    },
 });
 
 export interface IArticle extends Document {
@@ -28,6 +32,7 @@ export interface IArticle extends Document {
     date: Date;
     viewNumber: number;
     role: string;
+    category: Schema.Types.ObjectId;
 }
 
 export const Article: Model<IArticle> = model<IArticle>('Article', articleSchema);

@@ -2,6 +2,7 @@ import Router from 'koa-router';
 import {Category, Article} from '../models';
 import CONFIG from '../config';
 import removeMd from 'remove-markdown';
+import logger from '../logger';
 
 const readerRouter = new Router();
 
@@ -35,6 +36,8 @@ readerRouter.get('/articleInfo/:articleId', async (ctx) => {
 readerRouter.get('/article/:id', async (ctx) => {
     const article = await Article.findById(ctx.params.id);
     if (article) {
+        await article.update({$inc: {viewNumber: 1}});
+        logger.info(`Article ${article.title} get read.`);
         return ctx.body = {
             title: article.title,
             content: article.content,

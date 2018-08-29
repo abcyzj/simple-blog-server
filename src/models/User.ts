@@ -13,10 +13,10 @@ const userSchema: Schema = new Schema({
     },
     salt: {
         type: String,
-        required: true,
     },
     role: {
         type: String,
+        required: true,
         enum: ['Normal', 'Root'],
     },
 });

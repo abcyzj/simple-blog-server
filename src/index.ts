@@ -4,6 +4,7 @@ import koaLogger from 'koa-logger';
 import logger from './logger';
 import serve from 'koa-static';
 import router from './modules';
+import { User } from './models/User';
 
 const app = new Koa();
 app.use(koaLogger());
@@ -13,10 +14,17 @@ app.use(async (ctx, next) => {
         await next();
         const status = ctx.status || 404;
         if (status === 404) {
+            ctx.status = 404;
             ctx.throw(404);
         }
     } catch (err) {
-        ctx.redirect(CONFIG.PAGE404_URL);
+        switch (err.status) {
+            case 404:
+            ctx.redirect(CONFIG.PAGE404_URL);
+            break;
+            default:
+            break;
+        }
     }
 });
 
