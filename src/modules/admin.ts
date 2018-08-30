@@ -5,7 +5,7 @@ import bodyParser from 'koa-bodyparser';
 import jsonwebtoken from 'jsonwebtoken';
 import { Category, ICategory } from '../models/Category';
 import logger from '../logger';
-import { Article } from '../models/Article';
+import { Article, IArticle } from '../models/Article';
 
 const adminRouter = new Router();
 
@@ -152,6 +152,7 @@ adminRouter.get('/articleTable', async (ctx) => {
             viewNumber: article.viewNumber,
             categoryId: article.category,
             categoryName: category.name,
+            role: article.role || '无',
         });
     }
     ctx.body = resData;
@@ -172,5 +173,66 @@ adminRouter.post('/deleteArticle', async (ctx) => {
 
     ctx.body = {success: true};
 });
+
+adminRouter.get('/adminArticleInfo/:articleId', async (ctx) => {
+    const articleId = ctx.params.articleId as string;
+    const article = await Article.findById(articleId);
+    if (!article) {
+        return ctx.status = 404;
+    }
+
+    ctx.body = {
+        title: article.title,
+        content: article.content,
+        categoryId: article.category,
+    };
+});
+
+adminRouter.post('/saveArticle', async (ctx) => {
+    const postData = ctx.request.body as any;
+    if (postData.isNewArticle) {
+        const article = new Article({
+            title: postData.title,
+            content: postData.content,
+            category: postData.categoryId,
+        });
+        try {
+            await article.save();
+            await Category.findByIdAndUpdate(article.category, {$push: {articleIds: article._id}});
+        } catch (err) {
+            logger.error(err);
+            return ctx.body = {success: false};
+        }
+    } else {
+        try {
+            await Article.findByIdAndUpdate(postData.id, {
+                title: postData.title,
+                content: postData.content,
+                category: postData.categoryId,
+                date: Date.now(),
+            });
+        } catch (err) {
+            logger.error(err);
+            return ctx.body = {success: false};
+        }
+    }
+
+    ctx.body = {success: true};
+    logger.info(`Save article ${postData.title}`);
+});
+
+adminRouter.post('/setAboutArticle', async (ctx) => {
+    const postData = ctx.request.body as any;
+    try {
+        await Article.findOneAndUpdate({role: 'about'}, {$unset: {role: ''}});
+        await Article.findByIdAndUpdate(postData.id, {$set: {role: 'about'}});
+    } catch (err) {
+        logger.error(err);
+        return ctx.body = {success: false};
+    }
+
+    logger.info(`Set about page`);
+    ctx.body = {success: true};
+})
 
 export default adminRouter;
