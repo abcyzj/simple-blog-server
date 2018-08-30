@@ -3,8 +3,9 @@ import CONFIG from '../config';
 import { User } from '../models/User';
 import bodyParser from 'koa-bodyparser';
 import jsonwebtoken from 'jsonwebtoken';
-import { Category } from '../models/Category';
+import { Category, ICategory } from '../models/Category';
 import logger from '../logger';
+import { Article } from '../models/Article';
 
 const adminRouter = new Router();
 
@@ -14,17 +15,19 @@ const tokenWhiteList = [/^\/api\/login/];
 adminRouter.use(async (ctx, next) => {
     for (const reg of tokenWhiteList) {
         if (ctx.path.match(reg)) {
-            return next();
+            return await next();
         }
     }
 
     if (!ctx.request.header['authorization']) {
+        ctx.status = 401;
         return ctx.throw(401);
     }
 
     try {
         ctx.state.user = jsonwebtoken.verify(ctx.request.header['authorization'], CONFIG.JWT_SECRET);
     } catch (err) {
+        ctx.status = 401;
         return ctx.throw(401);
     }
     await next();
@@ -51,6 +54,26 @@ adminRouter.post('/login', async (ctx) => {
         success: true,
         token,
     };
+});
+
+adminRouter.post('/setPassword', async (ctx) => {
+    const userInfo = ctx.state.user;
+    const body = ctx.request.body as any;
+    const user = await User.findOne({username: userInfo.username});
+    try {
+        if (!user || !await user.checkPassword(body.password)) {
+            throw new Error(`User ${userInfo.username} change password failed.`);
+        }
+
+        user.password = body.newPassword;
+        await user.save();
+    } catch (err) {
+        logger.error(err);
+        return ctx.body = {success: false};
+    }
+
+    logger.info(`User ${userInfo.username} changed password.`);
+    return ctx.body = {success: true};
 });
 
 adminRouter.get('/userInfo', async (ctx) => {
@@ -109,6 +132,39 @@ adminRouter.post('/addCategory', async (ctx) => {
             name: data.name,
         });
         await newCategory.save();
+    } catch (err) {
+        logger.error(err);
+        return ctx.body = {success: false};
+    }
+
+    ctx.body = {success: true};
+});
+
+adminRouter.get('/articleTable', async (ctx) => {
+    const articles = await Article.find();
+    const resData: any[] = [];
+    for (const article of articles) {
+        const category = await Category.findById(article.category) as ICategory;
+        resData.push({
+            id: article._id,
+            title: article.title,
+            date: article.date.toLocaleString(),
+            viewNumber: article.viewNumber,
+            categoryId: article.category,
+            categoryName: category.name,
+        });
+    }
+    ctx.body = resData;
+});
+
+adminRouter.post('/deleteArticle', async (ctx) => {
+    const data = ctx.request.body as any;
+    try {
+        const removedArticle = await Article.findByIdAndRemove(data.id);
+        if (!removedArticle) {
+            throw new Error();
+        }
+        await Category.findByIdAndUpdate(removedArticle.category, {$pull: {articleIds: removedArticle._id}});
     } catch (err) {
         logger.error(err);
         return ctx.body = {success: false};
