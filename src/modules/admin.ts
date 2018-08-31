@@ -5,7 +5,8 @@ import bodyParser from 'koa-bodyparser';
 import jsonwebtoken from 'jsonwebtoken';
 import { Category, ICategory } from '../models/Category';
 import logger from '../logger';
-import { Article, IArticle } from '../models/Article';
+import { Article } from '../models/Article';
+import upload from './upload';
 
 const adminRouter = new Router();
 
@@ -233,6 +234,11 @@ adminRouter.post('/setAboutArticle', async (ctx) => {
 
     logger.info(`Set about page`);
     ctx.body = {success: true};
-})
+});
+
+adminRouter.post('/uploadImg', upload.single('image'), async (ctx) => {
+    const req = ctx.req as any;
+    ctx.body = {filename: req.file.filename};
+});
 
 export default adminRouter;

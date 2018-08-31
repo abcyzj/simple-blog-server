@@ -22,6 +22,7 @@ export default {
     LISTEN_PORT: 8080,
     LOGFILE_PATH: logfilePath,
     BLOG_STATIC_DIR: 'blog-static',
+    UPLOAD_IMG_DIR: 'uploadImg',
     PAGE404_URL: '/#/404',
     DB_ADDR: dbAddr,
     EXERPT_LENGTH: 40,
