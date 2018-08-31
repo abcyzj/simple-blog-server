@@ -4,7 +4,6 @@ import koaLogger from 'koa-logger';
 import logger from './logger';
 import serve from 'koa-static';
 import router from './modules';
-import { User } from './models/User';
 
 const app = new Koa();
 app.use(koaLogger());
@@ -28,7 +27,7 @@ app.use(async (ctx, next) => {
     }
 });
 
-app.use(serve(CONFIG.BLOG_STATIC_DIR));
+app.use(serve(CONFIG.BLOG_STATIC_DIR, {maxage: CONFIG.CACHE_MAX_AGE}));
 
 app.use(router.routes());
 

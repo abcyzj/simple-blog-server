@@ -28,4 +28,5 @@ export default {
     EXERPT_LENGTH: 40,
     JWT_SECRET: JWTSecret,
     TOKEN_EXPIRATION_TIME: '1d',
+    CACHE_MAX_AGE: 86400,
 };
