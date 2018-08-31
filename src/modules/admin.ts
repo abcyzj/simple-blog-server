@@ -207,7 +207,14 @@ adminRouter.post('/saveArticle', async (ctx) => {
         });
         try {
             await article.save();
-            await Category.findByIdAndUpdate(article.category, {$push: {articleIds: article._id}});
+            await Category.findByIdAndUpdate(article.category, {
+                $push: {
+                    articleIds: {
+                        $each: [article._id],
+                        $position: 0,
+                    },
+                },
+            });
         } catch (err) {
             logger.error(err);
             return ctx.body = {success: false};
@@ -227,7 +234,14 @@ adminRouter.post('/saveArticle', async (ctx) => {
                 if (originalArticle.category) {
                     await Category.findByIdAndUpdate(originalArticle.category, {$pull: {articleIds: postData.id}});
                 }
-                await Category.findByIdAndUpdate(postData.categoryId, {$push: {articleIds: postData.id}});
+                await Category.findByIdAndUpdate(postData.categoryId, {
+                    $push: {
+                        articleIds: {
+                            $each: [postData.id],
+                            $position: 0,
+                        },
+                    },
+                });
             }
         } catch (err) {
             logger.error(err);
