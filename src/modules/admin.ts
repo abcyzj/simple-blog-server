@@ -117,7 +117,13 @@ adminRouter.post('/setCategoryName', async (ctx) => {
 adminRouter.post('/deleteCategory', async (ctx) => {
     const data = ctx.request.body as any;
     try {
-        await Category.findByIdAndRemove(data.id);
+        const originalCategory = await Category.findByIdAndRemove(data.id);
+        if (!originalCategory) {
+            throw new Error('No corresponding category');
+        }
+        for (const articleId of originalCategory.articleIds) {
+            await Article.findByIdAndUpdate(articleId, {$unset: {category: ''}});
+        }
     } catch (err) {
         logger.error(err);
         return ctx.body = {success: false};
@@ -145,14 +151,14 @@ adminRouter.get('/articleTable', async (ctx) => {
     const articles = await Article.find();
     const resData: any[] = [];
     for (const article of articles) {
-        const category = await Category.findById(article.category) as ICategory;
+        const category = await Category.findById(article.category);
         resData.push({
             id: article._id,
             title: article.title,
             date: article.date.toLocaleString(),
             viewNumber: article.viewNumber,
-            categoryId: article.category,
-            categoryName: category.name,
+            categoryId: article.category || null,
+            categoryName: category ? category.name : '无',
             role: article.role || '无',
         });
     }
@@ -166,7 +172,9 @@ adminRouter.post('/deleteArticle', async (ctx) => {
         if (!removedArticle) {
             throw new Error();
         }
-        await Category.findByIdAndUpdate(removedArticle.category, {$pull: {articleIds: removedArticle._id}});
+        if (removedArticle.category) {
+            await Category.findByIdAndUpdate(removedArticle.category, {$pull: {articleIds: removedArticle._id}});
+        }
     } catch (err) {
         logger.error(err);
         return ctx.body = {success: false};
@@ -206,12 +214,21 @@ adminRouter.post('/saveArticle', async (ctx) => {
         }
     } else {
         try {
-            await Article.findByIdAndUpdate(postData.id, {
+            const originalArticle = await Article.findByIdAndUpdate(postData.id, {
                 title: postData.title,
                 content: postData.content,
                 category: postData.categoryId,
                 date: Date.now(),
             });
+            if (!originalArticle) {
+                throw new Error('No correspoding article.');
+            }
+            if (originalArticle.category !== postData.categoryId) {
+                if (originalArticle.category) {
+                    await Category.findByIdAndUpdate(originalArticle.category, {$pull: {articleIds: postData.id}});
+                }
+                await Category.findByIdAndUpdate(postData.categoryId, {$push: {articleIds: postData.id}});
+            }
         } catch (err) {
             logger.error(err);
             return ctx.body = {success: false};
