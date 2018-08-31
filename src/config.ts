@@ -14,8 +14,8 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 let JWTSecret: string = 'default-secret';
-if (fs.existsSync('~/.secret/simple-blog.secret')) {
-    JWTSecret = fs.readFileSync('~/.secret/simple-blog.secret', {encoding: 'utf8'});
+if (process.env.HOME && fs.existsSync(path.join(process.env.HOME, '.secret/simple-blog.secret'))) {
+    JWTSecret = fs.readFileSync(path.join(process.env.HOME, '.secret/simple-blog.secret'), {encoding: 'utf8'});
 }
 
 export default {
