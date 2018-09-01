@@ -3,7 +3,9 @@ import CONFIG from '../config';
 import { User } from '../models/User';
 import bodyParser from 'koa-bodyparser';
 import jsonwebtoken from 'jsonwebtoken';
-import { Category, ICategory } from '../models/Category';
+import axios from 'axios';
+import qs from 'qs';
+import { Category } from '../models/Category';
 import logger from '../logger';
 import { Article } from '../models/Article';
 import upload from './upload';
@@ -40,6 +42,21 @@ adminRouter.post('/login', async (ctx) => {
     }
 
     const body = ctx.request.body as any;
+
+    if (!body.recaptchaResponse) {
+        return ctx.body = {success: false};
+    }
+
+    const recaptchaVerifyRes = await axios.post('https://www.google.com/recaptcha/api/siteverify', qs.stringify({
+        secret: CONFIG.RECAPTCHA_SECRET,
+        response: body.recaptchaResponse,
+    }));
+
+    if (recaptchaVerifyRes.status !== 200 || !recaptchaVerifyRes.data.success) {
+        logger.error('Recaptcha verify fail');
+        return ctx.body = {success: false};
+    }
+
     const user = await User.findOne({username: body.username});
     if (!user || !await user.checkPassword(body.password)) {
         return ctx.body = {success: false};

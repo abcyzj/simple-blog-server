@@ -18,6 +18,11 @@ if (process.env.HOME && fs.existsSync(path.join(process.env.HOME, '.secret/simpl
     JWTSecret = fs.readFileSync(path.join(process.env.HOME, '.secret/simple-blog.secret'), {encoding: 'utf8'});
 }
 
+let recaptchaSecret: string = 'default-secret';
+if (process.env.HOME && fs.existsSync(path.join(process.env.HOME, '.secret/yezijie.me.secret'))) {
+    recaptchaSecret = fs.readFileSync(path.join(process.env.HOME, '.secret/yezijie.me.secret'), {encoding: 'utf8'});
+}
+
 export default {
     LISTEN_PORT: 8080,
     LOGFILE_PATH: logfilePath,
@@ -29,4 +34,5 @@ export default {
     JWT_SECRET: JWTSecret,
     TOKEN_EXPIRATION_TIME: '1d',
     CACHE_MAX_AGE: 86400,
+    RECAPTCHA_SECRET: recaptchaSecret,
 };
